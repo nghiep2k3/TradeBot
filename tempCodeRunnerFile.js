@@ -1,0 +1,2 @@
+
+var stopLoss = "0";

@@ -1,0 +1,23 @@
+API Key
+p4EJD0V4kuxswyEaS0
+API Secret
+d7K6OGmD59yzsHSCapaCB1c4hbSoWIn44Ir8
+
+const apiKey = "afb34179-fd0a-4073-b6b0-20781fef7a18";
+const apiSecret = "51A2035FA56FD7EB7CD4B87F553F4DB5";
+const password = "Nghiep2k3!";
+
+//Testnet Bybit
+API Key
+eI0cjNpQ3Uv76Vfvz3
+
+API Secret
+Czm11xznxgFTKRACzDAcfEaGEOgyJ9Vh1ZXI
+
+//Mainnet
+API Key
+9cYpXxZiInUkjWRjOc
+
+API Secret
+kwSiwdjzl9KvTnXMquqzxwyPDzZBzazz7qWM
+
