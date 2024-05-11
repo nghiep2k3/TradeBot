@@ -1,4 +1,6 @@
-const ccxt = require('ccxt');
+const ccxt = require("ccxt");
+const axios = require("axios");
+const crypto = require("crypto");
 
 var apiKey = "eI0cjNpQ3Uv76Vfvz3";
 var secret = "Czm11xznxgFTKRACzDAcfEaGEOgyJ9Vh1ZXI";
@@ -10,7 +12,7 @@ const fetchDataAndPushToArray = async () => {
     // Khởi tạo một đối tượng sàn Bybit từ thư viện CCXT
     const exchange = new ccxt.bybit({
       apiKey: apiKey,
-      secret: secret
+      secret: secret,
     });
     exchange.set_sandbox_mode(true);
 
@@ -23,12 +25,12 @@ const fetchDataAndPushToArray = async () => {
         open: x[1],
         high: x[2],
         low: x[3],
-        close: x[4]
+        close: x[4],
       };
     });
 
     const openPrice = formatPrices[0].open;
-    
+
     // Đẩy giá trị openPrice vào mảng openPricesArray
     openPricesArray.push(openPrice);
 
@@ -39,7 +41,6 @@ const fetchDataAndPushToArray = async () => {
 };
 
 const intervalId = setInterval(fetchDataAndPushToArray, 62000); // Gọi hàm mỗi 1 phút 2 giây
-
 
 // Để dừng việc gọi hàm sau một khoảng thời gian nào đó (ví dụ: sau 5 phút)
 // Comment dòng sau nếu không muốn dừng tự động

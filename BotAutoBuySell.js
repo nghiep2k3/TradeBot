@@ -8,6 +8,7 @@ url = "https://api-testnet.bybit.com";
 
 var apiKey = process.env.apiKey;
 var secret = process.env.apiSecret;
+var PercentAdd = 0;
 
 const bybit = new ccxt.bybit({
   apiKey: apiKey,
@@ -55,13 +56,14 @@ async function http_request(endpoint, method, data, Info) {
     data: data,
   };
 
-  console.log(Info + " Calling....");
+  // console.log(Info + " Calling....");
   await axios(config)
     .then(function (response) {
       console.log(JSON.stringify(response.data));
+      console.log("Ok");
     })
     .catch(function (error) {
-      console.log(error.response.data);
+      // console.log(error.response.data);
     });
 }
 
@@ -89,27 +91,6 @@ async function SetTpSl(symbol, TakeProfit, StopLoss) {
   await http_request(endpoint, "POST", data, "Create");
 }
 
-async function print() {
-  const balance = await bybit.fetchBalance();
-  // console.log(balance);
-  console.log(balance.info.result);
-}
-
-// call future
-async function fetchTicker(symbol, params = { category: "linear" }) {
-  try {
-    const rawTicker = await bybit.fetchTicker(symbol, params);
-    var x = bybit.parseTicker(rawTicker, (params = { category: "linear" }));
-    // console.log(x);
-    var MarketPrice = parseFloat(x.info.info?.markPrice);
-    console.log("2222", MarketPrice);
-  } catch (error) {
-    throw error;
-  }
-
-  return MarketPrice;
-}
-
 //Lấy thông tin vị thế đang mở rồi mở lệnh
 async function fetchPosition(symbol, side, So_luong, TakeProfitPecent) {
   try {
@@ -117,26 +98,33 @@ async function fetchPosition(symbol, side, So_luong, TakeProfitPecent) {
       symbol,
       (params = { settleCoin: "linear" })
     );
-    console.log(positions);
+    // console.log(positions);
     const CallAvgPrice = parseFloat(positions.info.avgPrice);
     const Leverage = parseFloat(positions.info.leverage);
 
-    // tiền thật = EntryPrice / đòn bẩy
-    // (EntryPrice + (tiền thật * 2 / 100)).totoFixed(1)
-
     var MoneyAfterLeverage = parseFloat(CallAvgPrice / Leverage);
-    var SetUpTp = parseFloat(
-      CallAvgPrice + (MoneyAfterLeverage * TakeProfitPecent) / 100
-    );
+    var SetupTp = 0;
+    PercentAdd = PercentAdd + 0.1;
+    if (side == "buy") {
+      SetupTp = parseFloat(
+        CallAvgPrice +
+          (MoneyAfterLeverage * (TakeProfitPecent + PercentAdd)) / 100
+      );
+    } else {
+      SetupTp = parseFloat(
+        CallAvgPrice -
+          (MoneyAfterLeverage * (TakeProfitPecent + PercentAdd)) / 100
+      );
+    }
 
-    var SetUpTpRoundedNumber = Math.round(SetUpTp * 10) / 10;
+    var SetUpTpRoundedNumber = Math.round((SetupTp + PercentAdd) * 10) / 10;
 
-    console.log(123, CallAvgPrice);
-    console.log(124, Leverage);
-    console.log(129, MoneyAfterLeverage);
-    console.log(130, SetUpTp);
-    console.log(134, SetUpTpRoundedNumber);
-    // console.log(SetUpTpRoundedNumber);
+    // console.log(123, CallAvgPrice);
+    // console.log(124, Leverage);
+    // console.log(129, MoneyAfterLeverage);
+    // console.log(110, TakeProfitPecent + PercentAdd);
+    // console.log(130, SetupTp);
+    // console.log(134, SetUpTpRoundedNumber);
 
     SetTpSl(symbol, SetUpTpRoundedNumber);
 
@@ -157,39 +145,38 @@ async function openPosition(
 ) {
   // chạy lần đầu tiên
   try {
-    // chạy lần đầu tiên vì chưa có lệnh nên chưa thể lấy giá trung bình, phải gọi giá thị trường cài tp tăng 2%
-    bybit.createOrder(symbol, type, side, So_luong);
+    //lấy thông tin vị thế
     const positions = await bybit.fetchPosition(
       symbol,
       (params = { settleCoin: "linear" })
     );
-    console.log(positions);
-    //khi mở lệnh mua thì công thức chốt lời
+    // console.log(positions);
+
     const CallAvgPrice = parseFloat(positions.info.avgPrice);
     const Leverage = leverage;
+
     var MoneyAfterLeverage = parseFloat(CallAvgPrice / Leverage);
-
-    var SetupTp;
+    var SetupTp = 0;
     if (side == "buy") {
-      SetupTp = parseFloat(CallAvgPrice + (MoneyAfterLeverage * TakeProfitPecent) / 100);
+      SetupTp = parseFloat(
+        CallAvgPrice + (MoneyAfterLeverage * TakeProfitPecent) / 100
+      );
+    } else {
+      SetupTp = parseFloat(
+        CallAvgPrice - (MoneyAfterLeverage * TakeProfitPecent) / 100
+      );
     }
-    else{
-      SetupTp = parseFloat(CallAvgPrice - (MoneyAfterLeverage * TakeProfitPecent) / 100);
-    }
+    // var SetUpTpRoundedNumber = Math.round(SetupTp * 10) / 10;
 
-    var SetUpTpRoundedNumber = Math.round(SetupTp * 10) / 10;
-
-    // khi mở lệnh bán thì công thức chốt lời
-
+    console.log(MoneyAfterLeverage);
     console.log("MarketPrice: ", CallAvgPrice);
-    console.log("TakeProfit: ", SetUpTpRoundedNumber);
+    console.log(SetupTp);
+    // console.log("TakeProfit: ", SetUpTpRoundedNumber);
 
-    SetTpSl(symbol, SetUpTpRoundedNumber);
+    SetTpSl(symbol, SetupTp);
   } catch (error) {
     console.error("Error fetching position:", error);
   }
-
-  // return SetUpTpRoundedNumber;
 }
 
 //kiểm tra lên mua tiếp hay tạo mới
@@ -206,39 +193,21 @@ async function CheckPosition(
       symbol,
       (params = { settleCoin: "linear" })
     );
-    console.log(positions);
-    console.log("Contracts", positions.contracts);
-    let Contracts = positions.contracts;
-    if (Contracts > 0) {
-      await bybit.createOrder(symbol, "market", side, So_luong);
+    // console.log(positions);
+    // console.log("Contracts", positions.contracts);
+    let Contracts = positions.contractSize;
+    let unPnl = positions.unrealizedPnl;
+
+    if (Contracts > 0 && unPnl < 0) {
+      await bybit.createOrder(symbol, type, side, So_luong);
       fetchPosition(symbol, side, So_luong, TakeProfitPecent);
+    } else if (unPnl > 0 && Contracts > 0) {
+      console.log("Bỏ qua vì PNL đang dương.... !");
     } else {
+      console.log("Đã mua");
+      await bybit.createOrder(symbol, type, side, So_luong);
       openPosition(symbol, type, side, So_luong, Leverage, TakeProfitPecent);
     }
-  } catch (error) {
-    console.error("Error fetching position:", error);
-  }
-}
-
-// đóng lệnh
-async function closePosition(symbol, type, side, So_luong) {
-  // lấy vị thế trỏ vào số lượng hợp đồng
-  var temp;
-  if (side == "Buy") {
-    temp = "Sell";
-  } else {
-    temp = "Buy";
-  }
-
-  try {
-    await bybit.createOrder(
-      symbol,
-      type,
-      temp,
-      So_luong,
-      (params = { reduceOnly: true })
-    );
-    // console.log(positions);
   } catch (error) {
     console.error("Error fetching position:", error);
   }
@@ -247,27 +216,21 @@ async function closePosition(symbol, type, side, So_luong) {
 // nguồn chạy chương trình
 async function main() {
   // Nhập tên đồng tiền, số lượng, mua hay bán
-  const symbol = "ETHUSDT";
-  const So_luong = 0.1;
-  const Leverage = 20;
-  const TakeProfitPecent = 20;
+  const symbol = "ADAUSDT";
+  const So_luong = 15;
+  const Leverage = 10;
+  const TakeProfitPecent = 3;
   const Type = "Market";
-  var side = "buy";
+  var side = "sell";
 
-  // await fetchPosition(symbol, side, So_luong, TakeProfitPecent);
-  // await fetchTicker(symbol, { category: "linear" });
-  // await closePosition(symbol, "Market", side, So_luong);
-  await openPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
-  // await print();
-  // await CheckPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
-
-  // console.log("OK");
+  // await openPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
+  await CheckPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
 }
 
 // main();
 
 async function runMain() {
-  const interval = 20000; // Định nghĩa khoảng thời gian chờ trong mili giây (ở đây là 5 giây)
+  const interval = 900000; // 15 phút = 15 * 60 * 1000 = 900000 milliseconds
   let startTime, endTime, elapsedTime;
 
   while (true) {
@@ -286,14 +249,3 @@ async function runMain() {
 }
 
 runMain();
-
-/* note
-Đang gặp lỗi lấy giá cũ cộng vào để setTp
-
-task 1: lý thuyết phải mua hoàn chỉnh rồi mới setTp (đã xử lý)
-
-task 2: nếu có lệnh thì chạy fetchPosition, k có thì chạy lệnh open (đã xử lý)
-
-
-
-*/
