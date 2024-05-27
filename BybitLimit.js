@@ -167,8 +167,8 @@ async function Set_leverage(symbol, Leverage) {
 
   var data = JSON.stringify(orderInfo);
 
-  // var data =
-  //   '{\n  "category": "linear",\n  "symbol": "BTCUSDT",\n  "buyLeverage": "20",\n  "sellLeverage": "20"\n}';
+  var data =
+    '{\n  "category": "linear",\n  "symbol": "SOLUSDT",\n  "buyLeverage": "20",\n  "sellLeverage": "20"\n}';
   
     await http_request(endpoint, "POST", data, "Leverage");
 
@@ -179,12 +179,12 @@ async function Set_leverage(symbol, Leverage) {
 // Open_Limit(orderLinkId, symbol, side, So_luong, price, takeProfit, stopLoss);
 
 // Cài đòn bẩy
-// Set_leverage(symbol, Leverage);
+Set_leverage(symbol, Leverage);
 
 //Đóng vị thế đang mở
 // ClosePosition(symbol, side, So_luong);
 
 //Đóng lệnh đang chờ mở
-Close_Limit(symbol, Id1, Id2);
+// Close_Limit(symbol, Id1, Id2);
 
 

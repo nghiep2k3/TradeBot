@@ -10,12 +10,12 @@ var secret = process.env.apiSecret;
 var recvWindow = 5000;
 
 // Nhập tên đồng tiền, số lượng, mua hay bán
-var symbol = "BTCUSDT";
+var symbol = "SOLUSDT";
 var So_luong = 5;
 var side = "Buy";
 
 // Đòn bẩy muốn cài
-const Leverage = 10;
+const Leverage = 20;
 
 const orderLinkId = crypto.randomBytes(16).toString("hex");
 
@@ -180,11 +180,11 @@ async function Set_leverage(symbol, Leverage) {
 }
 
 // Mở lệnh
-Open(orderLinkId, symbol, side, So_luong);
+// Open(orderLinkId, symbol, side, So_luong);
 // Open_Limit(orderLinkId, symbol, side, So_luong);
 
 // Cài đòn bẩy
-// Set_leverage(symbol, Leverage);
+Set_leverage(symbol, Leverage);
 
 //Đóng vị thế đang mở
 // ClosePosition(symbol, side, So_luong);

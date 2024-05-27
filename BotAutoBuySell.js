@@ -216,12 +216,12 @@ async function CheckPosition(
 // nguồn chạy chương trình
 async function main() {
   // Nhập tên đồng tiền, số lượng, mua hay bán
-  const symbol = "ADAUSDT";
-  const So_luong = 15;
-  const Leverage = 10;
+  const symbol = "BTCUSDT";
+  const So_luong = 0.003;
+  const Leverage = 20;
   const TakeProfitPecent = 3;
   const Type = "Market";
-  var side = "sell";
+  var side = "buy";
 
   // await openPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
   await CheckPosition(symbol, Type, side, So_luong, Leverage, TakeProfitPecent);
@@ -230,7 +230,7 @@ async function main() {
 // main();
 
 async function runMain() {
-  const interval = 900000; // 15 phút = 15 * 60 * 1000 = 900000 milliseconds
+  const interval = 300000; // 15 phút = 15 * 60 * 1000 = 900000 milliseconds
   let startTime, endTime, elapsedTime;
 
   while (true) {
